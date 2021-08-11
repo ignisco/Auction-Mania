@@ -6,6 +6,7 @@ using UnityEngine.UI;
 public class Card {
     public int value;
     public GameObject gameObjectCard;
+    private Player soldByPlayer;
     public Card(int value, GameObject gameObjectCard) {
         this.value = value;
         this.gameObjectCard = gameObjectCard;
@@ -16,13 +17,26 @@ public class Card {
     public void updateGameObject() {
         this.gameObjectCard.GetComponentInChildren<Text>().text = this.value.ToString();
     }
+
+    public void setSellingPlayer(Player player) {
+        this.soldByPlayer = player;
+    }
+
+    public Player getSellingPlayer() {
+        if (this.soldByPlayer != null) {
+            return this.soldByPlayer;
+        }
+        throw new System.Exception("No player defined as selling this card");
+    }
 }
 
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
     public List<Player> players;
+    private List<Card> sellingCards;
     public List<GameObject> gameObjectCards;
+    public GameObject BiddingPhaseUI;
     private List<int> cardDeck;
     private List<Card> cards;
     private int numberOfPlayers {get {return players.Count;}}
@@ -31,6 +45,8 @@ public class GameManager : MonoBehaviour
     private Player nextPlayer {get { return players[(turnOfPlayer + 1) % numberOfPlayers];}}
     private PlayerController playerController;
     private int currentBid;
+
+    public bool biddingPhase = true;
 
     float start;
     // Start is called before the first frame update
@@ -53,7 +69,7 @@ public class GameManager : MonoBehaviour
         }
 
         // Sorting by name to ensure we move clockwise around the table
-        players.Sort((o1, o2) => o1.name.CompareTo(o2.name));
+        players.Sort((o1, o2) => o1.gameObject.name.CompareTo(o2.gameObject.name));
 
         playerController = FindObjectOfType<PlayerController>();
     }
@@ -83,12 +99,14 @@ public class GameManager : MonoBehaviour
 
     private void Update() {
 
-        if (Time.time - start > 0.2) {
-            start = Time.time;
-            // 0 being the player
-            if (turnOfPlayer != 0 && gameObjectCards.Exists(goCard => goCard.activeInHierarchy)) {
-                currentPlayer.playBid(currentBid + 1);
-                return;
+        if (biddingPhase) {
+            if (Time.time - start > 0.2) {
+                start = Time.time;
+
+                if (!playerController.controlsPlayer(currentPlayer) && gameObjectCards.Exists(goCard => goCard.activeInHierarchy)) {
+                    currentPlayer.playBid(currentBid + 1);
+                    return;
+                }
             }
         }
     }
@@ -101,6 +119,11 @@ public class GameManager : MonoBehaviour
         {
             player.hasPassed = false;
             player.hideDrawnCard();
+        }
+
+
+        if (!biddingPhase) {
+            StartCoroutine(CPUSellCard());
         }
     }
 
@@ -197,12 +220,47 @@ public class GameManager : MonoBehaviour
 
     void updateCards() {
         if (cardDeck.Count == 0) {
-            Debug.Log("Round is over");
-            if(UnityEditor.EditorApplication.isPlaying) 
-            {
+            if (!this.biddingPhase) {
+                // Game is over
+                Debug.Log("Game is over");
+                Debug.Log("Final score (best to worst):");
+                players.Sort((p1, p2) => p2.totalBalance - p1.totalBalance);
+                foreach (Player player in players)
+                {
+                    Debug.Log(player.getName() + " got $" + player.totalBalance);
+                }
+
                 UnityEditor.EditorApplication.isPlaying = false;
+                return;
             }
-            return;
+            else {
+                Debug.Log("Bidding Phase is over");
+                currentPlayer.endsTurn();
+                this.biddingPhase = false;
+                this.BiddingPhaseUI.SetActive(false); // Hiding UI related to bidding
+                // Refilling Card deck with cash cards
+                for (int i = 0; i <= 31; i++)
+                {
+                    int value = Mathf.FloorToInt(i/2);
+                    if (value == 1) continue;
+                    cardDeck.Add(value);
+                }
+                // Removing random cards until remaining deck is a multiple of numberOfPlayers
+                // NB: if there are only 3 players, remove 6 cards
+                if (numberOfPlayers == 3) {
+                    for (int i = 0; i < 6; i++) {
+                        drawCard();
+                    }
+                }
+                while (cardDeck.Count % numberOfPlayers != 0) {
+                    drawCard();
+                }
+            }
+        }
+
+        if (!this.biddingPhase) {
+            sellingCards = new List<Card>();
+
         }
 
 
@@ -225,6 +283,44 @@ public class GameManager : MonoBehaviour
         for (int i = numberOfPlayers; i < 6; i++) 
         {
             gameObjectCards[i].SetActive(false);
+        }
+    }
+
+
+
+    // Methods related to selling
+
+    public bool sellCard(Card card) {
+
+        if (sellingCards.Exists(c => c.getSellingPlayer() == card.getSellingPlayer())) {
+            return false;
+        }
+
+        sellingCards.Add(card);
+        card.getSellingPlayer().drawHiddenCardGraphics();
+        // All players have placed their cards
+        if (sellingCards.Count == numberOfPlayers) {
+            sellingCards.Sort((c1, c2) => c2.value - c1.value);
+            for (int i = 0; i < numberOfPlayers; i++)
+            {
+                sellingCards[i].getSellingPlayer().revealCardForSale(sellingCards[i]);
+                sellingCards[i].getSellingPlayer().earnMoney(cards[i].value);
+            }
+            // Wait a bit so players can see the result of the round before moving on
+            StartCoroutine(nextRound());
+        }
+        return true;
+    }
+
+
+    IEnumerator CPUSellCard() {
+        foreach (Player player in players)
+        {
+            if (!playerController.controlsPlayer(player)) {
+                float timeToWait = Random.Range(0f, 1f);
+                yield return new WaitForSeconds(timeToWait);
+                player.sellCard();
+            }
         }
     }
     

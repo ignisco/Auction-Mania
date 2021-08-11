@@ -28,6 +28,10 @@ public class Player : MonoBehaviour {
         this.drawnCard.SetActive(false);
         this.drawnCardText = this.drawnCard.GetComponentInChildren<Text>();
     }
+
+    public string getName() {
+        return this.nameText.text;
+    }
     
     public void getsCard(Card card) {
         cards.Add(card);
@@ -36,10 +40,26 @@ public class Player : MonoBehaviour {
         this.drawnCardText.text = card.value.ToString();
     }
 
+    public void earnMoney(int value) {
+        this.balance += value;
+        showNewBalance();
+    }
+
+    public void revealCardForSale(Card cardForSale) {
+        this.drawnCardText.text = cardForSale.value.ToString();
+    }
+
+    public void drawHiddenCardGraphics() {
+        this.drawnCard.SetActive(true);
+        this.drawnCardText.text = "";
+    }
+
     // Hide card and show bid when new round starts
     public void hideDrawnCard() {
         this.drawnCard.SetActive(false);
-        this.bidText.gameObject.SetActive(true);
+        if (GameManager.Instance.biddingPhase) {
+            this.bidText.gameObject.SetActive(true);
+        }
     }
     
     void showNewBalance() {
@@ -97,6 +117,22 @@ public class Player : MonoBehaviour {
             }
             return "Need to bid higher";
         }
+    }
+
+
+    // Methods related to selling
+
+    public bool sellCard(Card card = null) {
+        if (card == null) {
+            // CPUs randomly pick a card to sell
+            card = cards[Random.Range(0, cards.Count - 1)];
+        }
+        card.setSellingPlayer(this);
+        bool success = GameManager.Instance.sellCard(card);
+        if (success) {
+            cards.Remove(card);
+        }
+        return success;
     }
 
     

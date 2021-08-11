@@ -5,8 +5,9 @@ using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviour
 {
-    // Start is called before the first frame update
     private Player player;
+
+    // Cards displayed to the right of the table
     public List<GameObject> gameObjectCards;
     private int chosenBid = 0;
     public Text bidText;
@@ -32,9 +33,11 @@ public class PlayerController : MonoBehaviour
     }
 
     public void updateCardGraphics() {
-        GameObject newestCard = gameObjectCards[player.cards.Count - 1];
-        newestCard.GetComponentInChildren<Text>().text = player.cards[player.cards.Count - 1].value.ToString();
-        newestCard.SetActive(true);
+        Card newestCard = player.cards[player.cards.Count - 1];
+        GameObject newestGameObjectCard = gameObjectCards[player.cards.Count - 1];
+        newestGameObjectCard.GetComponentInChildren<Text>().text = newestCard.value.ToString();
+        newestGameObjectCard.SetActive(true);
+        newestGameObjectCard.GetComponent<SellableCards>().setRelatedCard(newestCard);
 
         // Also reseting bid
         this.chosenBid = 0;
@@ -79,5 +82,14 @@ public class PlayerController : MonoBehaviour
             this.chosenBid -= 1;
             updateBidGraphic();
         }
+    }
+
+
+    public bool sellCard(Card card) {
+        if (GameManager.Instance.biddingPhase) {
+            return false;
+        }
+        bool success = this.player.sellCard(card);
+        return success;
     }
 }
