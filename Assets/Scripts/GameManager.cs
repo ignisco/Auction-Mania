@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -6,6 +7,9 @@ using UnityEngine.UI;
 public class Card {
     public int value;
     public GameObject gameObjectCard;
+
+    // Used to find soldByPlayer after JSON-deserialization
+    public string nameOfSellingPlayer;
     private Player soldByPlayer;
     public Card(int value, GameObject gameObjectCard) {
         this.value = value;
@@ -33,23 +37,65 @@ public class Card {
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
+    private bool firstReceivedData = true;
     public List<Player> players;
+    private List<string> moves;
     private List<Card> sellingCards;
     public List<GameObject> gameObjectCards;
-    public GameObject BiddingPhaseUI;
+    public GameObject biddingPhaseUI;
+    public List<GameButton> biddingPhaseButtons;
     private List<int> cardDeck;
     private List<Card> cards;
-    private int numberOfPlayers {get {return players.Count;}}
-    public int turnOfPlayer;
-    private Player currentPlayer {get {return players[turnOfPlayer];}}
-    private Player nextPlayer {get { return players[(turnOfPlayer + 1) % numberOfPlayers];}}
+    private int numberOfPlayers;
+    private Player currentPlayer;
     private PlayerController playerController;
     private int currentBid;
 
     public bool biddingPhase = true;
 
-    float start;
-    // Start is called before the first frame update
+    public List<string> getMoves() {
+        return this.moves;
+    }
+
+    public bool isCurrentPlayer(Player player) {
+        if (currentPlayer == null) return false;
+        return this.currentPlayer.Equals(player);
+    }
+
+    void onReceivedGameData(Dictionary<string, object> data) {
+        if (firstReceivedData) {
+            Setup(data);
+            firstReceivedData = false;
+            return;
+        }
+
+    }
+
+    void onReceivedPlayerData(Dictionary<string, object> data) {
+
+        var networkMoves = data["moves"] as List<object>;
+
+        string newestMove = networkMoves[0] as string;
+        //this.moves.Insert(0, newestMove);
+
+        if (biddingPhase) {
+            currentPlayer.playBid(int.Parse(newestMove));
+        }
+        else {
+            Debug.Log(newestMove);
+            Card card = JsonUtility.FromJson<Card>(newestMove);
+            card.setSellingPlayer(findPlayerByName(card.nameOfSellingPlayer));
+            sellCard(card);
+        }
+    }
+
+    private Player findPlayerByName(string name) {
+        foreach (Player player in players)
+        {
+            if (player.getName() == name) return player;
+        }
+        return null;
+    }
 
     private void Awake() {
 
@@ -58,11 +104,35 @@ public class GameManager : MonoBehaviour
         } else {
             Instance = this;
         }
+    }
 
-        // TODO: get number of players from server
-        int numberOfPlayersFromServer = 6;
+    private void Start() {
+        NetworkManager.instance.listenToGameData(onReceivedGameData);
+    }
 
-        for (int i = players.Count - 1; i >= numberOfPlayersFromServer ; i--)
+    void Setup (Dictionary<string, object> data) {
+        numberOfPlayers = (int) (long) data["numberOfPlayers"];
+        List<string> playerNames = (data["players"] as List<object>).Select(e => e as string).ToList();
+        NetworkManager.instance.listenToPlayerData(playerNames, onReceivedPlayerData);
+        Random.InitState((int) (long) data["randomSeed"]);
+        this.moves = new List<string>();
+        
+        for (int i = 0; i < numberOfPlayers; i++)
+        {
+            players[i].setName(playerNames[i]);
+
+            // If you are controlling this player, enable the PlayerController
+            if (playerNames[i] == NetworkManager.instance.currentName) {
+                playerController = players[i].gameObject.GetComponent<PlayerController>();
+                playerController.enabled = true;
+                foreach (GameButton button in biddingPhaseButtons)
+                {
+                    button.setPlayerController(playerController);
+                }
+            }
+        }
+        
+        for (int i = players.Count - 1; i >= numberOfPlayers ; i--)
         {
             players[i].gameObject.SetActive(false);
             players.Remove(players[i]);
@@ -71,12 +141,9 @@ public class GameManager : MonoBehaviour
         // Sorting by name to ensure we move clockwise around the table
         players.Sort((o1, o2) => o1.gameObject.name.CompareTo(o2.gameObject.name));
 
-        playerController = FindObjectOfType<PlayerController>();
-    }
-    void Start()
-    {
         // Randomly choosing who starts the game
-        turnOfPlayer = Random.Range(0, numberOfPlayers - 1);
+        currentPlayer = players[Random.Range(0, numberOfPlayers)];
+        currentPlayer.getsTurn();
         
         cardDeck = new List<int>();
         for (int i = 0; i < 30; i++) {
@@ -90,6 +157,11 @@ public class GameManager : MonoBehaviour
                 drawCard();
             }
         }
+        if (numberOfPlayers == 2) {
+            for (int i = 0; i < 14; i++) {
+                drawCard();
+            }
+        }
         while (cardDeck.Count % numberOfPlayers != 0) {
             drawCard();
         }
@@ -97,33 +169,17 @@ public class GameManager : MonoBehaviour
         updateCards();
     }
 
-    private void Update() {
-
-        if (biddingPhase) {
-            if (Time.time - start > 0.2) {
-                start = Time.time;
-
-                if (!playerController.controlsPlayer(currentPlayer) && gameObjectCards.Exists(goCard => goCard.activeInHierarchy)) {
-                    currentPlayer.playBid(currentBid + 1);
-                    return;
-                }
-            }
-        }
-    }
-
     IEnumerator nextRound() {
+        Player temp = currentPlayer;
+        currentPlayer = null;
         yield return new WaitForSeconds(2);
+        currentPlayer = temp;
         updateCards();
         currentBid = 0;
         foreach (Player player in players)
         {
             player.hasPassed = false;
             player.hideDrawnCard();
-        }
-
-
-        if (!biddingPhase) {
-            StartCoroutine(CPUSellCard());
         }
     }
 
@@ -164,8 +220,8 @@ public class GameManager : MonoBehaviour
             // If only one player hasn't passed, they are the winner of this bidding round
             if (activePlayers.Count == 1) {
                 currentPlayer.endsTurn();
-                turnOfPlayer = players.IndexOf(activePlayers[0]);
-                activePlayers[0].getsTurn();
+                currentPlayer = activePlayers[0];
+                currentPlayer.getsTurn();
                 givePlayerCard(currentPlayer, cards[0]);
                 roundOver();
                 return;
@@ -174,13 +230,13 @@ public class GameManager : MonoBehaviour
             for (int i = 1; i < numberOfPlayers; i++)
             {
 
-                Player player = players[(turnOfPlayer + i) % numberOfPlayers];
+                Player player = players[(players.IndexOf(currentPlayer) + i) % numberOfPlayers];
 
                 // First in line who has yet to pass gets a turn
                 if (!player.hasPassed) {
                     currentPlayer.endsTurn();
-                    turnOfPlayer = players.IndexOf(player);
-                    player.getsTurn();
+                    currentPlayer = player;
+                    currentPlayer.getsTurn();
                     return;
                 }
             }
@@ -190,13 +246,13 @@ public class GameManager : MonoBehaviour
         currentBid = bid;
         for (int i = 1; i < numberOfPlayers; i++)
         {
-            Player player = players[(turnOfPlayer + i) % numberOfPlayers];
+            Player player = players[(players.IndexOf(currentPlayer) + i) % numberOfPlayers];
 
             // First in line who has yet to pass gets a turn
             if (!player.hasPassed) {
                 currentPlayer.endsTurn();
-                turnOfPlayer = players.IndexOf(player);
-                player.getsTurn();
+                currentPlayer = player;
+                currentPlayer.getsTurn();
                 return;
             }
         }
@@ -206,14 +262,11 @@ public class GameManager : MonoBehaviour
     }
 
     public bool validateMove(int bid) {
-        if (bid > currentBid) {
-            return true;
-        }
-        return false;
+        return bid > currentBid;
     }
 
     int drawCard () {
-        int card = cardDeck[Random.Range(0, cardDeck.Count - 1)];
+        int card = cardDeck[Random.Range(0, cardDeck.Count)];
         cardDeck.Remove(card);
         return card;
     }
@@ -222,22 +275,15 @@ public class GameManager : MonoBehaviour
         if (cardDeck.Count == 0) {
             if (!this.biddingPhase) {
                 // Game is over
-                Debug.Log("Game is over");
-                Debug.Log("Final score (best to worst):");
-                players.Sort((p1, p2) => p2.totalBalance - p1.totalBalance);
-                foreach (Player player in players)
-                {
-                    Debug.Log(player.getName() + " got $" + player.totalBalance);
-                }
-
-                UnityEditor.EditorApplication.isPlaying = false;
+                Debug.Log("Game is over, loading Results Scene");
+                SceneManager.instance.LoadScene("Results");
                 return;
             }
             else {
                 Debug.Log("Bidding Phase is over");
                 currentPlayer.endsTurn();
                 this.biddingPhase = false;
-                this.BiddingPhaseUI.SetActive(false); // Hiding UI related to bidding
+                this.biddingPhaseUI.SetActive(false); // Hiding UI related to bidding
                 // Refilling Card deck with cash cards
                 for (int i = 0; i <= 31; i++)
                 {
@@ -249,6 +295,11 @@ public class GameManager : MonoBehaviour
                 // NB: if there are only 3 players, remove 6 cards
                 if (numberOfPlayers == 3) {
                     for (int i = 0; i < 6; i++) {
+                        drawCard();
+                    }
+                }
+                if (numberOfPlayers == 2) {
+                    for (int i = 0; i < 14; i++) {
                         drawCard();
                     }
                 }
@@ -274,6 +325,11 @@ public class GameManager : MonoBehaviour
         for (int i = 0; i < numberOfPlayers; i++)
         {
             cards.Add(new Card(drawCard(), gameObjectCards[i]));
+
+            // DEBUG
+            if (i == 0) {
+                Debug.Log(JsonUtility.ToJson(cards[0]));
+            }
         }
 
         // Sorting list descending to easily remove lowest value
@@ -290,12 +346,11 @@ public class GameManager : MonoBehaviour
 
     // Methods related to selling
 
-    public bool sellCard(Card card) {
+    public bool canSellCard(Card card) {
+        return !sellingCards.Exists(c => c.getSellingPlayer() == card.getSellingPlayer());
+    }
 
-        if (sellingCards.Exists(c => c.getSellingPlayer() == card.getSellingPlayer())) {
-            return false;
-        }
-
+    public void sellCard(Card card) {
         sellingCards.Add(card);
         card.getSellingPlayer().drawHiddenCardGraphics();
         // All players have placed their cards
@@ -309,19 +364,5 @@ public class GameManager : MonoBehaviour
             // Wait a bit so players can see the result of the round before moving on
             StartCoroutine(nextRound());
         }
-        return true;
     }
-
-
-    IEnumerator CPUSellCard() {
-        foreach (Player player in players)
-        {
-            if (!playerController.controlsPlayer(player)) {
-                float timeToWait = Random.Range(0f, 1f);
-                yield return new WaitForSeconds(timeToWait);
-                player.sellCard();
-            }
-        }
-    }
-    
 }

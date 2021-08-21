@@ -270,6 +270,7 @@ GameObject:
   m_Component:
   - component: {fileID: 922696734477812949}
   - component: {fileID: 6012616145467010249}
+  - component: {fileID: 2503436842179558561}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -305,8 +306,29 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 28c8b7550ce14406180da1aa513fdb5d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  hasTurn: 0
   hasPassed: 0
+--- !u!114 &2503436842179558561
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5867140593338625024}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3432f2b43aec8437f856f9d004ee3a2b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  gameObjectCards:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  bidText: {fileID: 0}
 --- !u!1 &9025966801545042497
 GameObject:
   m_ObjectHideFlags: 0

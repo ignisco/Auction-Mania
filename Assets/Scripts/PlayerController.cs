@@ -37,7 +37,9 @@ public class PlayerController : MonoBehaviour
         GameObject newestGameObjectCard = gameObjectCards[player.cards.Count - 1];
         newestGameObjectCard.GetComponentInChildren<Text>().text = newestCard.value.ToString();
         newestGameObjectCard.SetActive(true);
-        newestGameObjectCard.GetComponent<SellableCards>().setRelatedCard(newestCard);
+        SellableCards sellableCard = newestGameObjectCard.GetComponent<SellableCards>();
+        sellableCard.setRelatedCard(newestCard);
+        sellableCard.setPlayerController(this);
 
         // Also reseting bid
         this.chosenBid = 0;
@@ -45,11 +47,12 @@ public class PlayerController : MonoBehaviour
     }
 
     public void playBid() {
-        if (this.player.hasTurn) {
-            string play = player.playBid(this.chosenBid);
-            // There were errors
-            if (play != null) {
-                Debug.Log("Error: This will be shown to player: " + play);
+        if (GameManager.Instance.isCurrentPlayer(this.player)) {
+            if (this.player.canAfford(this.chosenBid) && GameManager.Instance.validateMove(this.chosenBid)) {
+                NetworkManager.instance.SendMoveToServer(this.chosenBid.ToString(), this.player.getName());
+            }
+            else {
+                Debug.Log("Not a legal move");
             }
         } 
         else {
@@ -58,8 +61,8 @@ public class PlayerController : MonoBehaviour
     }
 
     public void pass() {
-        if (this.player.hasTurn) {
-            player.pass();
+        if (GameManager.Instance.isCurrentPlayer(this.player)) {
+            NetworkManager.instance.SendMoveToServer("0", this.player.getName());
         }
         else {
             Debug.Log("Not your turn yet, you impatient piece of sh*t");
@@ -71,7 +74,7 @@ public class PlayerController : MonoBehaviour
     }
 
     public void increaseBid() {
-        if (this.chosenBid < player.totalBalance) {
+        if (this.chosenBid < this.player.totalBalance) {
             this.chosenBid += 1;
             updateBidGraphic();
         }
@@ -86,10 +89,15 @@ public class PlayerController : MonoBehaviour
 
 
     public bool sellCard(Card card) {
+        card.setSellingPlayer(this.player);
         if (GameManager.Instance.biddingPhase) {
             return false;
         }
-        bool success = this.player.sellCard(card);
-        return success;
+        if (!GameManager.Instance.canSellCard(card)) {
+            return false;
+        }
+        card.nameOfSellingPlayer = this.player.getName();
+        NetworkManager.instance.SendMoveToServer(JsonUtility.ToJson(card), this.player.getName());
+        return true;
     }
 }

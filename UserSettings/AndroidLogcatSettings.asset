@@ -1,0 +1,185 @@
+{
+    "m_SelectedDeviceId": "2255a6606d0d7ece",
+    "m_SelectedPackage": {
+        "deviceId": "2255a6606d0d7ece",
+        "name": "com.ignisco.auctionmania",
+        "processId": 26298,
+        "exited": false
+    },
+    "m_SelectedPriority": 0,
+    "m_KnownPackagesForSerialization": [
+        {
+            "deviceId": "2255a6606d0d7ece",
+            "name": "com.ignisco.auctionmania",
+            "processId": 12248,
+            "exited": true
+        },
+        {
+            "deviceId": "2255a6606d0d7ece",
+            "name": "com.ignisco.auctionmania",
+            "processId": 25918,
+            "exited": true
+        },
+        {
+            "deviceId": "2255a6606d0d7ece",
+            "name": "com.google.android.youtube",
+            "processId": 14759,
+            "exited": true
+        },
+        {
+            "deviceId": "2255a6606d0d7ece",
+            "name": "com.ignisco.auctionmania",
+            "processId": 20234,
+            "exited": true
+        },
+        {
+            "deviceId": "2255a6606d0d7ece",
+            "name": "com.ignisco.auctionmania",
+            "processId": 24859,
+            "exited": true
+        },
+        {
+            "deviceId": "2255a6606d0d7ece",
+            "name": "com.sec.android.app.launcher",
+            "processId": 1909,
+            "exited": false
+        },
+        {
+            "deviceId": "2255a6606d0d7ece",
+            "name": "com.ignisco.auctionmania",
+            "processId": 32031,
+            "exited": false
+        },
+        {
+            "deviceId": "2255a6606d0d7ece",
+            "name": "com.ignisco.auctionmania",
+            "processId": 8211,
+            "exited": false
+        },
+        {
+            "deviceId": "2255a6606d0d7ece",
+            "name": "com.ignisco.auctionmania",
+            "processId": 13335,
+            "exited": false
+        },
+        {
+            "deviceId": "2255a6606d0d7ece",
+            "name": "com.ignisco.auctionmania",
+            "processId": 17995,
+            "exited": false
+        },
+        {
+            "deviceId": "2255a6606d0d7ece",
+            "name": "com.ignisco.auctionmania",
+            "processId": 23828,
+            "exited": false
+        },
+        {
+            "deviceId": "2255a6606d0d7ece",
+            "name": "com.ignisco.auctionmania",
+            "processId": 31341,
+            "exited": false
+        },
+        {
+            "deviceId": "2255a6606d0d7ece",
+            "name": "com.ignisco.auctionmania",
+            "processId": 12536,
+            "exited": false
+        },
+        {
+            "deviceId": "2255a6606d0d7ece",
+            "name": "com.ignisco.auctionmania",
+            "processId": 25853,
+            "exited": false
+        },
+        {
+            "deviceId": "2255a6606d0d7ece",
+            "name": "com.ignisco.auctionmania",
+            "processId": 29850,
+            "exited": false
+        },
+        {
+            "deviceId": "2255a6606d0d7ece",
+            "name": "com.ignisco.auctionmania",
+            "processId": 9332,
+            "exited": false
+        },
+        {
+            "deviceId": "2255a6606d0d7ece",
+            "name": "com.ignisco.auctionmania",
+            "processId": 13842,
+            "exited": false
+        },
+        {
+            "deviceId": "2255a6606d0d7ece",
+            "name": "com.ignisco.auctionmania",
+            "processId": 17913,
+            "exited": false
+        },
+        {
+            "deviceId": "2255a6606d0d7ece",
+            "name": "com.ignisco.auctionmania",
+            "processId": 4989,
+            "exited": false
+        },
+        {
+            "deviceId": "2255a6606d0d7ece",
+            "name": "com.ignisco.auctionmania",
+            "processId": 26298,
+            "exited": false
+        }
+    ],
+    "m_Tags": {
+        "m_Entries": [
+            {
+                "m_Name": "Filter by all listed tags",
+                "m_Selected": false
+            },
+            {
+                "m_Name": "No Filter",
+                "m_Selected": true
+            },
+            {
+                "m_Name": "",
+                "m_Selected": false
+            },
+            {
+                "m_Name": "Tag Control...",
+                "m_Selected": false
+            },
+            {
+                "m_Name": "",
+                "m_Selected": false
+            },
+            {
+                "m_Name": "Unity",
+                "m_Selected": false
+            },
+            {
+                "m_Name": "CRASH",
+                "m_Selected": false
+            }
+        ]
+    },
+    "m_MemoryViewerState": {
+        "MemoryWindowHeight": 300.0,
+        "MemoryWindowWidth": 170.0,
+        "MemoryTypeEnabled": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+        ],
+        "MemoryGroup": 2,
+        "Behavior": 0
+    },
+    "m_Filter": "",
+    "m_FilterIsRegularExpression": false,
+    "m_SymbolPaths": []
+}

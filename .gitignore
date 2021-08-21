@@ -119,4 +119,9 @@ $RECYCLE.BIN/
 
 
 
-# Ignoring Firebase files for now
+# Ignore Build Folders
+/MacOS Builds
+/iOS Build Real
+/iOS Build Simulator
+/Android Builds
+

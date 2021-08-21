@@ -7,22 +7,15 @@ using UnityEngine.UI;
 public class SellableCards : MonoBehaviour
 {
     // Start is called before the first frame update
-    private Button btn;
     private PlayerController playerController;
     public Card card;
 
     void Start()
     {
-        playerController = FindObjectOfType<PlayerController>();
-        
-        btn = GetComponent<Button>();
-        btn.onClick.AddListener(ClickEvent);
+        GetComponent<Button>().onClick.AddListener(ClickEvent);
     }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
+    public void setPlayerController(PlayerController playerController) {
+        this.playerController = playerController;
     }
 
     public void setRelatedCard (Card card) {

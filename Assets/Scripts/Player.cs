@@ -6,7 +6,6 @@ using UnityEngine.UI;
 public class Player : MonoBehaviour {
     private int balance = 20;
     private int bid = 0;
-    public bool hasTurn = false;
     public bool hasPassed = false;
     private Text balanceText;
     private Text nameText;
@@ -31,6 +30,10 @@ public class Player : MonoBehaviour {
 
     public string getName() {
         return this.nameText.text;
+    }
+
+    public void setName(string name) {
+        this.nameText.text = name;
     }
     
     public void getsCard(Card card) {
@@ -68,12 +71,11 @@ public class Player : MonoBehaviour {
     }
 
     public void getsTurn() {
-        this.hasTurn = true;
         this.nameText.fontStyle = FontStyle.Bold;
     }
 
     public void endsTurn() {
-        this.hasTurn = false;
+
         this.nameText.fontStyle = FontStyle.Normal;
     }
 
@@ -82,7 +84,7 @@ public class Player : MonoBehaviour {
         showNewBalance();
     }
 
-    public void pass() {
+    private void pass() {
         GameManager.Instance.makeMove(0);
         int cashBack = Mathf.FloorToInt(this.bid/2.0f);
         this.balance += cashBack;
@@ -90,50 +92,20 @@ public class Player : MonoBehaviour {
         showNewBalance();
     }
 
-    public string playBid(int bid) {
+    public void playBid(int bid) {
+        if (bid == 0) {
+            pass();
+            return;
+        }
         int bidIncrease = bid - this.bid;
-        if (balance - bidIncrease < 0) {
-            Debug.Log("You can't afford this");
-
-            // Pass if bot
-            if (GameManager.Instance.turnOfPlayer != 0) {
-                pass();
-            }
-
-            return "You can't afford this";
-        }
-
-        if (GameManager.Instance.validateMove(bid)) {
-            GameManager.Instance.makeMove(bid);
-            this.balance -= bidIncrease;
-            this.bid = bid;
-            showNewBalance();
-            return null;
-        } else {
-            Debug.Log("Need to bid higher");
-            // Play higher if bot
-            if (GameManager.Instance.turnOfPlayer != 0) {
-                playBid(bid + 1);
-            }
-            return "Need to bid higher";
-        }
+        GameManager.Instance.makeMove(bid);
+        this.balance -= bidIncrease;
+        this.bid = bid;
+        showNewBalance();
     }
 
-
-    // Methods related to selling
-
-    public bool sellCard(Card card = null) {
-        if (card == null) {
-            // CPUs randomly pick a card to sell
-            card = cards[Random.Range(0, cards.Count - 1)];
-        }
-        card.setSellingPlayer(this);
-        bool success = GameManager.Instance.sellCard(card);
-        if (success) {
-            cards.Remove(card);
-        }
-        return success;
+    public bool canAfford(int bid) {
+        return bid <= this.totalBalance;
     }
-
     
 }

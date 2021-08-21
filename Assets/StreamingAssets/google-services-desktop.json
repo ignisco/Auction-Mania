@@ -1,39 +1,37 @@
 {
-  "project_info": {
-    "project_number": "393791522747",
-    "project_id": "auction-mania",
-    "storage_bucket": "auction-mania.appspot.com"
-  },
   "client": [
     {
+      "services": {
+        "appinvite_service": {
+          "status": 1
+        }, 
+        "analytics_service": {
+          "status": 0
+        }
+      }, 
+      "oauth_client": [
+        {
+          "client_id": "393791522747-v780lpl0uu1r2mga9jileqoe5euu3i4o.apps.googleusercontent.com"
+        }
+      ], 
+      "api_key": [
+        {
+          "current_key": "AIzaSyD_8IkbMJAUFiuE3PI3Z8ByvJR05RHirTI"
+        }
+      ], 
       "client_info": {
-        "mobilesdk_app_id": "1:393791522747:android:bfc2754df425d33756669e",
+        "mobilesdk_app_id": "1:393791522747:ios:5e3fb305e268bfb156669e", 
         "android_client_info": {
           "package_name": "com.ignisco.auctionmania"
         }
-      },
-      "oauth_client": [
-        {
-          "client_id": "393791522747-4lchm73cp3id7851896vvfuaft2n0ase.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
-      "api_key": [
-        {
-          "current_key": "AIzaSyAL3m0qiVbqMviWgtBqUrwRAARrSUmLZjE"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "393791522747-4lchm73cp3id7851896vvfuaft2n0ase.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
-        }
       }
     }
-  ],
-  "configuration_version": "1"
+  ], 
+  "configuration_version": "1", 
+  "project_info": {
+    "storage_bucket": "auction-mania.appspot.com", 
+    "project_id": "auction-mania", 
+    "firebase_url": "https://auction-mania-default-rtdb.europe-west1.firebasedatabase.app", 
+    "project_number": "393791522747"
+  }
 }
