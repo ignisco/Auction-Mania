@@ -119,4 +119,5 @@ $RECYCLE.BIN/
 
 
 
-# Ignoring Firebase files for now
+# Ignoring Images folder in assets
+/Assets/Images/
