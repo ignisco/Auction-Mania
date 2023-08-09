@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
 using UnityEngine.SceneManagement;
+using Photon.Pun;
 
 // Get WebCam information from the browser
 public class WebCam : MonoBehaviour
@@ -19,7 +20,8 @@ public class WebCam : MonoBehaviour
         {
             Debug.Log("webcam found");
             devices = WebCamTexture.devices;
-            frontCam = new(devices[0].name, Screen.width, Screen.height);
+            frontCam = new(devices[0].name, 1280, 720);
+            Debug.Log("Screen: " + Screen.width + " - " + Screen.height);
             frontCam.Play();
             rawImage.texture = frontCam;
         }
@@ -32,12 +34,39 @@ public class WebCam : MonoBehaviour
     public void SnapPhoto()
     {
         frontCam.Pause();
-        Texture texture = rawImage.texture;
-        var texture2d = new Texture2D(texture.width, texture.height, TextureFormat.ARGB32, false);
-        Graphics.CopyTexture(texture, texture2d);
-        FlipTextureHorizontally(texture2d);
-        System.IO.File.WriteAllBytes("Assets/Images/Photo.png", ImageConversion.EncodeToPNG(texture2d));
-        SceneManager.LoadScene("Game2");
+        DisplayImageLobby();
+    }
+
+
+    private void DisplayImageLobby()
+    {
+        // If connected and player number registered,
+        // display the image on the shared canvas
+        if (Networking.PlayerNumber > 0)
+        {
+            Texture imageTexture = rawImage.texture;
+
+            // Create a new RenderTexture
+            var renderTexture = new RenderTexture(imageTexture.width, imageTexture.height, 0);
+
+            // Set the active RenderTexture
+            RenderTexture.active = renderTexture;
+
+            // Render the WebCamTexture to the RenderTexture
+            Graphics.Blit(imageTexture, renderTexture);
+
+            // Create a new Texture2D
+            var texture2d = new Texture2D(imageTexture.width, imageTexture.height, TextureFormat.ARGB32, false);
+
+            // Read the pixel data from the RenderTexture into the Texture2D
+            texture2d.ReadPixels(new Rect(0, 0, imageTexture.width, imageTexture.height), 0, 0);
+
+            // Apply the changes to the Texture2D
+            texture2d.Apply();
+
+            var photonView = FindObjectOfType<PhotonView>(); // there is only the one lobby instance
+            photonView.RPC("RPC_DisplayImage", RpcTarget.AllBuffered, texture2d.EncodeToJPG(), Networking.PlayerNumber);
+        }
     }
 
     public static void FlipTextureHorizontally(Texture2D original)

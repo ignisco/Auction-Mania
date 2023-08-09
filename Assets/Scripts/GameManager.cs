@@ -78,11 +78,11 @@ public class GameManager : MonoBehaviour
         }
 
         // Apply saved image from webcam to first player
-        var bytes = System.IO.File.ReadAllBytes(Application.dataPath + "/Images/Photo.png");
-        var myTexture = new Texture2D(1, 1);
-        myTexture.LoadImage(bytes);
-        var mySprite = Sprite.Create(myTexture, new Rect(0, 0, myTexture.width, myTexture.height), new Vector2(0, 0));
-        players[0].transform.Find("Canvas").Find("Image").GetComponent<Image>().sprite = mySprite;
+        // var bytes = System.IO.File.ReadAllBytes(Application.dataPath + "/Images/Photo.png");
+        // var myTexture = new Texture2D(1, 1);
+        // myTexture.LoadImage(bytes);
+        // var mySprite = Sprite.Create(myTexture, new Rect(0, 0, myTexture.width, myTexture.height), new Vector2(0, 0));
+        // players[0].transform.Find("Canvas").Find("Image").GetComponent<Image>().sprite = mySprite;
 
         // TODO: get number of players from server
         int numberOfPlayersFromServer = 6;
