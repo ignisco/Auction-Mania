@@ -10,9 +10,10 @@ public class Networking : MonoBehaviourPunCallbacks
     // Each client keeps track of there number
     public static int PlayerNumber;
 
-    [SerializeField]
-    private GameObject _lobby; // Reference to the shared lobby prefab
-    private GameObject _lobbyInstance; // Reference to the instantiated lobby prefab
+    private void Awake()
+    {
+        DontDestroyOnLoad(gameObject);
+    }
 
     private void Start()
     {
@@ -56,12 +57,30 @@ public class Networking : MonoBehaviourPunCallbacks
         // Instantiate the shared prefab on the server
         if (PhotonNetwork.IsMasterClient)
         {
-            Vector3 spawnPosition = new Vector3(0f, 0f, 0f); // Set your spawn position
-            PhotonNetwork.Instantiate(_lobby.name, spawnPosition, Quaternion.identity);
+            Vector3 spawnPosition = new Vector3(2.0999999f, 3.67000008f, 0.21266f); // Set your spawn position
+            PhotonNetwork.Instantiate("Avatars", spawnPosition, Quaternion.Euler(0, 0, 90));
         }
 
         PlayerNumber = PhotonNetwork.PlayerList.Length;
+
     }
 
-    // ... Rest of the script ...
+
+    // when master clicks start button
+    public void LoadGame()
+    {
+        // turn on bid and cash on the avatars
+        var photonView = FindObjectOfType<PhotonView>();
+        photonView.RPC("RPC_SetBidAndCash", RpcTarget.AllBuffered);
+
+        // load game scene
+        PhotonNetwork.LoadLevel("Game");
+    }
+
+    // Cast RPC of own player name to all clients
+    public void SetPlayerName(string playerName)
+    {
+        var photonView = FindObjectOfType<PhotonView>();
+        photonView.RPC("RPC_SetPlayerName", RpcTarget.AllBuffered, playerName, Networking.PlayerNumber);
+    }
 }

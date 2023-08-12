@@ -41,6 +41,8 @@ MonoBehaviour:
   - RespawnSpaceship
   - DisplayImage
   - RPC_DisplayImage
+  - RPC_SetBidAndCash
+  - RPC_SetPlayerName
   DisableAutoOpenWizard: 1
   ShowSettings: 0
   DevRegionSetOnce: 1

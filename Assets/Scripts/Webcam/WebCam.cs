@@ -8,11 +8,12 @@ using Photon.Pun;
 public class WebCam : MonoBehaviour
 {
     private WebCamDevice[] devices;
-    public RawImage rawImage;
 
     private WebCamTexture frontCam;
 
-    // Use this for initialization
+    private RawImage rawImage;
+
+    // Initates when spawned by networking script
     IEnumerator Start()
     {
         yield return Application.RequestUserAuthorization(UserAuthorization.WebCam);
@@ -23,6 +24,8 @@ public class WebCam : MonoBehaviour
             frontCam = new(devices[0].name, 1280, 720);
             Debug.Log("Screen: " + Screen.width + " - " + Screen.height);
             frontCam.Play();
+            // Attach to the RawImage component on this game object
+            rawImage = GetComponent<RawImage>();
             rawImage.texture = frontCam;
         }
         else
@@ -66,6 +69,17 @@ public class WebCam : MonoBehaviour
 
             var photonView = FindObjectOfType<PhotonView>(); // there is only the one lobby instance
             photonView.RPC("RPC_DisplayImage", RpcTarget.AllBuffered, texture2d.EncodeToJPG(), Networking.PlayerNumber);
+
+            // enable start button for current player if they are the master client
+            if (PhotonNetwork.IsMasterClient)
+            {
+                GameObject.Find("Start").GetComponent<Button>().interactable = true;
+            }
+
+            // Destroy self, as camera is no longer needed
+            Destroy(gameObject);
+
+
         }
     }
 
