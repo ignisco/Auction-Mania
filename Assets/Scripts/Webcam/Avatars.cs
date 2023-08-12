@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Photon.Pun;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Linq;
 
 public class Avatars : MonoBehaviourPunCallbacks
 {
@@ -43,17 +44,26 @@ public class Avatars : MonoBehaviourPunCallbacks
     }
 
     [PunRPC]
-    public void RPC_SetBidAndCash()
+    public void RPC_PrepareGame()
     {
-        // set bid and cash for all players
+
+        int index = 1;
         foreach (Transform player in transform)
         {
+            // disable if index is more than number of players
+            if (index > PhotonNetwork.PlayerList.Length)
+            {
+                player.gameObject.SetActive(false);
+                index++;
+                continue;
+            }
+            // enable bid and cash for used players
             var canvas = player.Find("Canvas");
             var bid = canvas.Find("Bid").gameObject;
             var cash = canvas.Find("Cash").gameObject;
             bid.SetActive(true);
             cash.SetActive(true);
-
+            index++;
         }
     }
 

@@ -69,9 +69,9 @@ public class Networking : MonoBehaviourPunCallbacks
     // when master clicks start button
     public void LoadGame()
     {
-        // turn on bid and cash on the avatars
+        // Prepare game: disable missing players, turn on bid and cash on the avatars
         var photonView = FindObjectOfType<PhotonView>();
-        photonView.RPC("RPC_SetBidAndCash", RpcTarget.AllBuffered);
+        photonView.RPC("RPC_PrepareGame", RpcTarget.AllBuffered);
 
         // load game scene
         PhotonNetwork.LoadLevel("Game");
